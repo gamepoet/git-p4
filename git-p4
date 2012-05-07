@@ -471,7 +471,19 @@ def gitConfig(key):
 
 def gitConfigList(key):
     if not _gitConfig.has_key(key):
-        _gitConfig[key] = read_pipe("git config --get-all %s" % key, ignore_error=True).strip().split(os.linesep)
+        linesep = os.linesep
+        if gitConfig('git-p4.linesep') == 'unix':
+            linesep = "\n"
+        elif gitConfig('git-p4.linesepWin') == 'windows':
+            linesep = "\r\n"
+        elif gitConfig('git-p4.linesepWin') == 'native':
+            linesep = os.linesep
+
+        content = read_pipe("git config --get-all %s" % key, ignore_error=True).strip()
+        items = []
+        if content != '':
+            items = content.split(linesep)
+        _gitConfig[key] = items
     return _gitConfig[key]
 
 def p4BranchesInGit(branchesAreInRemotes = True):
