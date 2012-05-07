@@ -486,6 +486,27 @@ def gitConfigList(key):
         _gitConfig[key] = items
     return _gitConfig[key]
 
+_depotPathSubs = False
+def fixDepotPath(depotPath):
+    global _depotPathSubs
+    if not _depotPathSubs:
+        _depotPathSubs = []
+        depotPathSubsConfigVal = gitConfigList('git-p4.depotPathSubs')
+        for item in depotPathSubsConfigVal:
+            match = re.match(r"^\"(.*)\"\s*\"(.*)\"", item)
+            if match:
+                regex   = re.compile(match.group(1))
+                replace = match.group(2)
+                _depotPathSubs.append([regex, replace])
+
+    # apply the substitutions
+    for pathSubPair in _depotPathSubs:
+        regex = pathSubPair[0]
+        repl = pathSubPair[1]
+        depotPath = regex.sub(repl, depotPath)
+
+    return depotPath
+
 def p4BranchesInGit(branchesAreInRemotes = True):
     branches = {}
 
@@ -808,7 +829,8 @@ class P4FileReader:
                 text = re.sub(r'\$(Id|Header|Author|Date|DateTime|Change|File|Revision):[^$\n]*\$',r'$\1$', text)
 
             depotFile = None
-            filePath = header['depotFile']
+            filePath = fixDepotPath(header['depotFile'])
+
             if filePath in self.pathMap:
                 depotFile = self.pathMap[filePath]
                 depotFile['data'] = text
@@ -1268,7 +1290,7 @@ class P4Sync(Command):
         files = []
         fnum = 0
         while commit.has_key("depotFile%s" % fnum):
-            path =  commit["depotFile%s" % fnum]
+            path = fixDepotPath(commit["depotFile%s" % fnum])
 
             if [p for p in self.cloneExclude
                 if path.startswith (p)]:
