@@ -486,7 +486,7 @@ def gitConfigList(key):
         _gitConfig[key] = items
     return _gitConfig[key]
 
-_depotPathSubs = False
+_depotPathSubs = None
 def fixDepotPath(depotPath):
     global _depotPathSubs
     if not _depotPathSubs:
@@ -506,6 +506,36 @@ def fixDepotPath(depotPath):
         depotPath = regex.sub(repl, depotPath)
 
     return depotPath
+
+_depotIncludePaths = None
+_depotExcludePaths = None
+def isDepotPathIncluded(depotPath):
+    global _depotExcludePaths
+    global _depotIncludePaths
+
+    if not _depotExcludePaths:
+        _depotExcludePaths = []
+        _depotIncludePaths = []
+        patterns = gitConfigList('git-p4.depotExcludePaths')
+        for item in patterns:
+            _depotExcludePaths.append(re.compile(item))
+        patterns = gitConfigList('git-p4.depotIncludePaths')
+        for item in patterns:
+            _depotIncludePaths.append(re.compile(item))
+
+    # regex paths in the exclude list
+    for regex in _depotExcludePaths:
+        if regex.search(depotPath):
+            return False
+
+    # allow paths in the include list
+    if len(_depotIncludePaths) > 0:
+        for regex in _depotIncludePaths:
+            if regex.search(depotPath):
+                return True
+        return False
+
+    return True
 
 def p4BranchesInGit(branchesAreInRemotes = True):
     branches = {}
@@ -1298,6 +1328,11 @@ class P4Sync(Command):
             else:
                 found = [p for p in self.depotPaths
                          if path.startswith (p)]
+
+            # check exclusion patterns
+            if found:
+                found = isDepotPathIncluded(path)
+
             if not found:
                 fnum = fnum + 1
                 continue
