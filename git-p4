@@ -10,6 +10,7 @@
 
 import optparse, sys, os, stat, marshal, subprocess, shlex
 import tempfile, os.path, time, platform
+import urllib
 import re
 import cStringIO
 import StringIO
@@ -1518,6 +1519,10 @@ class P4Sync(Command):
                 continue
 
             relPath = self.stripRepoPath(f['path'], branchPrefixes)
+
+            # paths come in percent-coded (url-style) (usually for '@' in the path)
+            relPath = urllib.unquote(relPath)
+
             if f['action'] in self.delete_actions:
                 self.gitStream.write("D %s\n" % relPath)
             else:
@@ -1544,6 +1549,10 @@ class P4Sync(Command):
             includeFile = False
             excludeFile = False
             relPath = self.stripRepoPath(f['path'], branchPrefixes)
+
+            # paths come in percent-coded (url-style) (usually for '@' in the path)
+            relPath = urllib.unquote(relPath)
+
             if len(self.clientSpecDirs):
                 for val in self.clientSpecDirs:
                     if f['path'].startswith(val[0]):
