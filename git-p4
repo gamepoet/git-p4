@@ -844,7 +844,7 @@ class P4FileReader:
             if header['type'].startswith('utf16'):
                 # Don't even try to convert utf16. Ask p4 to write the file directly.
                 tmpFileName = tempfile.mktemp()
-                P4Helper().p4_system("print -o \"%s\" \"%s\"" % (tmpFileName, escapeStringP4(header['depotFile'])))
+                P4Helper().p4_system("print -o \"%s\" \"%s@%s\"" % (tmpFileName, escapeStringP4(header['depotFile']), header['change']))
                 fh = open(tmpFileName)
                 text = fh.read()
                 fh.close()
