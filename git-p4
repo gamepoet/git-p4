@@ -2283,7 +2283,7 @@ class P4Sync(Command):
             else:
                 debugDumpFile = None
 
-            importProcess = subprocess.Popen(["git", "fast-import"],
+            importProcess = subprocess.Popen(["git", "fast-import", "--quiet"],
                                              stdin=subprocess.PIPE, stdout=subprocess.PIPE)
             self.gitStream = LargeFileWriter(importProcess.stdin, debugDumpFile)
 
