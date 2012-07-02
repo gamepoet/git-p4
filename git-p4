@@ -475,9 +475,9 @@ def gitConfigList(key):
         linesep = os.linesep
         if gitConfig('git-p4.linesep') == 'unix':
             linesep = "\n"
-        elif gitConfig('git-p4.linesepWin') == 'windows':
+        elif gitConfig('git-p4.linesep') == 'windows':
             linesep = "\r\n"
-        elif gitConfig('git-p4.linesepWin') == 'native':
+        elif gitConfig('git-p4.linesep') == 'native':
             linesep = os.linesep
 
         content = read_pipe("git config --get-all %s" % key, ignore_error=True).strip()
