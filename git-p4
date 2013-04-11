@@ -1091,11 +1091,6 @@ class P4Submit(Command):
         diff = "\n".join( read_pipe_lines("git diff \"%s^\" \"%s\"" % (id, id)) )
         template = self.prepareSubmitTemplate()
         changelist = self.submit(template, logMessage, diff)
-        
-        # Add note
-        if changelist > 0:
-            cmd = 'git notes --ref=git-p4 add -m "[depot-paths = \\"%s\\": change = %s]" %s' % (self.depotPath, changelist, id)
-            system(cmd)
 
     def applyCommits(self):
         while len(self.commits) > 0 and self.abort == False:
@@ -1162,8 +1157,6 @@ class P4Submit(Command):
         self.applyCommits()
         
         if self.abort == False:
-            system("git update-ref %s%s %s" % (getRefsPrefix(self.importIntoRemotes), self.master, self.master))
-
             if len(self.commits) == 0:
                 print "All changes applied!"
                 chdir(self.oldWorkingDirectory)
